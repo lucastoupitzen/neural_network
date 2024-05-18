@@ -4,21 +4,23 @@ from Layer import Layer
 from activation_functions.Relu import ReluActivation
 from activation_functions.Sigmoid import SigmoidActivation
 from reading_letters_fausett import read_csv_data_letters_fausset
+from reading_final_project import read_database
+# file_path = "caracteres-limpo.csv"
+# X, y = read_csv_data_letters_fausset(file_path)
 
-file_path = "caracteres-limpo.csv"
-X, y = read_csv_data_letters_fausset(file_path)
+X, y = read_database()
 
 # input possui 63 atributos
-hidden_layer = Layer(63, 5)
+hidden_layer = Layer(120, 10)
 # output possui 7 atributos
-output_layer = Layer(5, 7)
+output_layer = Layer(10, 26)
 
 # Define o mínimo erro quadrático aceitável
 min_error_threshold = 0.001
 
 # Define o limite de épocas de treinamento
 current_epoch = 0
-max_epochs = 10000
+max_epochs = 100
 
 # guarda os erros obtidos em cada época
 error_history = []
