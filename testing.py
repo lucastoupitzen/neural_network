@@ -3,12 +3,14 @@ from Layer import Layer
 from activation_functions.Relu import ReluActivation
 from activation_functions.Sigmoid import SigmoidActivation
 from reading_letters_fausett import read_csv_data_letters_fausset
+from reading_final_project import read_test_database
 
-hidden_layer = Layer(63, 5)
-output_layer = Layer(5, 7)
+hidden_layer = Layer(120, 50)
+# output possui 7 atributos
+output_layer = Layer(50, 26)
 
-file_path = "caracteres-ruido.csv"
-X, y = read_csv_data_letters_fausset(file_path)
+
+X, y = read_test_database()
 
 # Define the filename for the JSON file
 json_filename = "output.json"

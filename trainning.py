@@ -5,29 +5,46 @@ from activation_functions.Relu import ReluActivation
 from activation_functions.Sigmoid import SigmoidActivation
 from reading_letters_fausett import read_csv_data_letters_fausset
 from reading_final_project import read_database
+import numpy as np
 # file_path = "caracteres-limpo.csv"
 # X, y = read_csv_data_letters_fausset(file_path)
+
+# Define a method to shuffle the training data
+def shuffle_data(X, y):
+    
+
+    X = np.array(X)
+    y = np.array(y)
+    # Generate random indices
+    indices = np.arange(X.shape[0])
+    np.random.shuffle(indices)
+
+    # Shuffle X and y using the same indices
+    X_shuffled = X[indices]
+    y_shuffled = y[indices]
+
+    return X_shuffled, y_shuffled
 
 X, y = read_database()
 
 # input possui 63 atributos
-hidden_layer = Layer(120, 10)
+hidden_layer = Layer(120, 50)
 # output possui 7 atributos
-output_layer = Layer(10, 26)
+output_layer = Layer(50, 26)
 
 # Define o mínimo erro quadrático aceitável
 min_error_threshold = 0.001
 
 # Define o limite de épocas de treinamento
 current_epoch = 0
-max_epochs = 100
+max_epochs = 600
 
 # guarda os erros obtidos em cada época
 error_history = []
 
 while True:
     # Perform training epoch
-     
+    X, y = shuffle_data(X, y)
     error = 0
     for index in range(len(X)):
         
@@ -65,7 +82,7 @@ while True:
 
         #termo de correção do erro (delta_Wjk)
 
-        learning_rate = 0.4 #taxa de aprendizado
+        learning_rate = 0.2 #taxa de aprendizado
         ## delta_Wjk = learning_rate * delta_k * f(z_in)
 
         delta_Wjk = []
@@ -145,8 +162,29 @@ while True:
 
     error_history.append(quadratic_error)
     
+    if current_epoch % 10 == 0:
+        print(f"Currenty epoch: {current_epoch} quadratic_error:{quadratic_error}")
+
+        json_filename = "output.json"
+
+        # Create a dictionary to store the results
+        results = {
+            "epoca": current_epoch,
+            "Pesos da camada escondida": hidden_layer.weights,
+            "Bias da camada escondida": hidden_layer.biases,
+            "Pesos da camada de output": output_layer.weights,
+            "Bias da camada de output": output_layer.biases,
+            "Erro quadrático": quadratic_error
+        }
+
+        # Write the results to the JSON file
+        with open(json_filename, 'w') as json_file:
+            json.dump(results, json_file, indent=4)
+            
     # Increment epoch counter
     current_epoch += 1
+
+    
 
 
 # Plot the learning curve

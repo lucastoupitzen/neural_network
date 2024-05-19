@@ -1,4 +1,7 @@
 {
+    "epocas": 600,
+    "learning_rate": 0.2,
+    "sucesso": 63.8,
     "Pesos da camada escondida": [
         [
             -0.38288106603110117,
