@@ -7,6 +7,18 @@ def one_hot_encoder(letter):
         encoding[index] = 1
     return encoding
 
+def letters_encoded():
+    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    corresp = {}
+    for letter in alphabet:
+        num_classes = len(alphabet)
+        encoding = [0] * num_classes
+        index = alphabet.index(letter.upper())
+        encoding[index] = 1
+        corresp[letter.upper()] = encoding
+    return corresp
+
+
 def read_exit_file(file_path):
     data = []
     with open(file_path, 'r') as file:

@@ -1,13 +1,14 @@
 import math
 from .Activation_interface import Activation_interface
+import numpy as np
 
 class SigmoidActivation(Activation_interface):
 
     def forward(self, inputs):
 
         outputs = []
-        for input in inputs:
-            output = self.sigmoid_function(input)
+        for input_x in inputs:
+            output = self.sigmoid_function(input_x)
             outputs.append(output)
 
         self.output = outputs
@@ -22,9 +23,9 @@ class SigmoidActivation(Activation_interface):
         self.derivatives = outputs
 
     @classmethod
-    def sigmoid_function(cls, input):
+    def sigmoid_function(cls, input_x):
 
-        return 1 / (1 + math.exp(-input))
+        return (1 / (1 + math.exp(-input_x)))
     
     @classmethod
     def sigmoid_derivative(cls, input):
