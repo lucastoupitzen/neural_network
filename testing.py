@@ -1,30 +1,26 @@
 import json
 from Layer import Layer
-from activation_functions.Relu import ReluActivation
 from activation_functions.Sigmoid import SigmoidActivation
-from activation_functions.Softmax import SoftmaxActivation
-from reading_letters_fausett import read_csv_data_letters_fausset
-from reading_final_project import read_test_database, letters_encoded
+from reading_final_project import read_test_database
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 def testing(isFinal: bool = False, hidden_neurons = 0):
 
+    # Instancia as camadas do modelo
     hidden_layer = Layer(120, hidden_neurons)
-    # output possui 7 atributos
     output_layer = Layer(hidden_neurons, 26)
 
 
     X, y = read_test_database()
 
-    # Define the filename for the JSON file
+    # Arquivo json de onde as informações serão retiradas
     json_filename = "output.json"
 
-    # Read the results from the JSON file
     with open(json_filename, 'r') as json_file:
         results = json.load(json_file)
 
-    # Extract the weights and biases from the results dictionary
+    # Extração dos pesos e dos biases obtidos em treinamento
     hidden_layer_weights = results["Pesos da camada escondida"]
     hidden_layer_biases = results["Bias da camada escondida"]
     output_layer_weights = results["Pesos da camada de output"]
@@ -36,9 +32,11 @@ def testing(isFinal: bool = False, hidden_neurons = 0):
     output_layer.set_weights(output_layer_weights)
     output_layer.set_biases(output_layer_biases)
 
+    # cálculo da acurácia do modelo
     sucesso = 0
     erro = 0
 
+    ## Inicia a estrutura da matriz de confusão, uma matriz[26][26] com 0 em todos os campos
     confusion_matrix = [[0 for _ in range(26)] for _ in range(26)]
 
     for index_test in range(len(X)):
@@ -62,14 +60,19 @@ def testing(isFinal: bool = False, hidden_neurons = 0):
 
         expected_output = y[index_test]
         
+        # As saídas esperadas estão no formato one-hot-encoded
+        # Dessa forma, comparamos a posição do maior valor do vetor de saída com a posição do 1
+        # no vetor de saídas esperadas, indicando a maior semelhança possível dada pelo modelo
+        # Se forem iguais, temos um sucesso, caso contrário, um erro
         if result.index(max(result)) == expected_output.index(1): sucesso += 1
         else: erro += 1
 
+        # Sendo o teste final, queremos atualizar nossa matriz de confusão
         if isFinal:
-
+            # Soma 1 ao campo [esperado][obtido]
             confusion_matrix[expected_output.index(1)][result.index(max(result))] += 1
             
-
+    # plotagem da matriz de confusão
     if isFinal:
         # Generate and save confusion matrix plot
         plt.figure(figsize=(14, 10))
@@ -79,13 +82,6 @@ def testing(isFinal: bool = False, hidden_neurons = 0):
         plt.ylabel('Actual')
         plt.savefig('confusion_matrix.png')
         plt.clf()
-
-        
-
-
-    # print("Sucessos: ", sucesso)
-    # print("Erro: ", erro)
-    # print("Porcentagem de sucesso: ", (sucesso)/(sucesso + erro))
     
-
+    # retorna a acurácia
     return (sucesso)/(sucesso + erro)

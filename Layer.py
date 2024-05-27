@@ -1,5 +1,7 @@
 import random
 
+
+# cria a matriz de pesos randômicos
 def random_matrix(rows, cols):
 
     random.seed(10)
@@ -10,6 +12,7 @@ def random_matrix(rows, cols):
         matrix.append(row)
     return matrix
 
+# Inicializa os vetores de bias
 def biases_array(inicialization_value, size):
 
     array = []
@@ -25,6 +28,9 @@ class Layer():
         self.weights = random_matrix(input_dimension, n_neurons)
         self.biases = biases_array(1, n_neurons)
 
+    # Método para lidar com a passagem do sinal de input pela camada
+    # Aplica os pesos e bias sobre o input e reserva o resultado na
+    # propriedade output (pré função de ativação)
     def forward(self, input_signal):
        
         layer_in = []
@@ -36,6 +42,8 @@ class Layer():
 
         self.output = layer_in #z_in ou y_in
 
+    # Métodos para aproveitar pesos e biases já calculados que serão carregados na camada
+    # utilizado para realização dos testes
     def set_weights(self, weights):
         self.weights = weights
 

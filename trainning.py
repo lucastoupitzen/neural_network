@@ -27,93 +27,115 @@ def shuffle_data(X, y):
 
 X, y = read_database()
 
-number_of_neurons = 76
+# Implementação da estrutura de neurônios
 
-# input possui 63 atributos
+number_of_neurons = 85
+
 hidden_layer = Layer(120, number_of_neurons)
-# output possui 7 atributos
 output_layer = Layer(number_of_neurons, 26)
 
 # Define the filename for the JSON file
-# json_filename = "output63n.json"
+json_filename = "output.json"
 
-# # Read the results from the JSON file
-# with open(json_filename, 'r') as json_file:
-#     results = json.load(json_file)
-
-# # Extract the weights and biases from the results dictionary
-# hidden_layer_weights = results["Pesos da camada escondida"]
-# hidden_layer_biases = results["Bias da camada escondida"]
-# output_layer_weights = results["Pesos da camada de output"]
-# output_layer_biases = results["Bias da camada de output"]
-
-# hidden_layer.set_weights(hidden_layer_weights)
-# hidden_layer.set_biases(hidden_layer_biases)
-
-# output_layer.set_weights(output_layer_weights)
-# output_layer.set_biases(output_layer_biases)
-
-# Define o mínimo erro quadrático aceitável
-min_error_threshold = 0.005
+# Define o mínimo erro quadrático aceitável que determina a convergência do modelo
+min_error_threshold = 0.01
 
 # Define o limite de épocas de treinamento
 current_epoch = 0
-max_epochs = 300
+max_epochs = 1000
 
-# guarda os erros obtidos em cada época
+# guarda os erros e acuràcias obtidos em cada época
 error_historic = []
-accuracy_historic = []
-
+accuracy_historic =  []
 
 
 #momentum
+# Utilizado como uma estratégia para acelerar a convergência do método e
+# evitar mìnimos locais
+
+# definição de um alpha para determinar o peso que o momentum terá na correção
 alpha = 0.8
+# matrizes de momentum que irão guardar o valor da última atualização de cada peso durante o treinamento
 momentum_output = [[0 for _ in range(len(output_layer.weights[0]))] for _ in range(len(output_layer.weights))]
 momentum_hidden = [[0 for _ in range(len(hidden_layer.weights[0]))] for _ in range(len(hidden_layer.weights))]
 momentum_bias_output = [0] * len(output_layer.biases)
 momentum_bias_hidden = [0] * len(hidden_layer.biases)
 
+
+# Ínicio do loop de treinamento
 while True:
-    # Perform training epoch
+   
+    # Embaralha os dados de input e output para diminuir a chance de 
+    # mínimos locais
     X, y = shuffle_data(X, y)
+
+    # inicialização da variável do erro quadrático calculado para cada época
     error = 0
+
+    # Processamento da época
     for index in range(len(X)):
+
+        ### Processo de FeedForward
         
+        # Passagem do input sobre a camada escondida
         hidden_layer.forward(X[index])
 
-        #próximo passo é aplicar a função de ativação ao output dessa camada
+        # Definição da função de ativação da camada
         hidden_activation = SigmoidActivation()
+
+        # Aplicação da função de ativação sobre a entrada da camada escondida
         hidden_activation.forward(hidden_layer.output) #f(z_in)
 
-        #hidden_activation.output é o input da próxima camada
+        # A saída dos dados da função de ativação é a entrada dos dados para a camada de saída
         output_layer.forward(hidden_activation.output)
 
-        #output.layer.output = y_in
+        
+
+        # Definição da função de ativação da camada
         output_activation = SigmoidActivation()
+
+        # # Aplicação da função de ativação sobre a entrada da camada de saída
+        # output.layer.output = y_in
         output_activation.forward(output_layer.output) #f(y_in)
 
-        #output_activation.output é a saída da rede neural
+        # output_activation.output é a saída da rede neural
         result = output_activation.output
 
+
+        ### Estimação do erro obtido na época
+
+        # guarda para cada dado do conjunto de dados a diferença entre o valor esperado e o obtido
         error_vector = []
         
         for i in range(len(y[index])):
             error_vector.append(y[index][i] - result[i])
+            # Erros ao quadrado -> Compõe o cálculo do erro quadrático mais adiante (linha 210)
             error += ((y[index][i] - result[i])**2)
     
         #vetor das derivadas das entradas na output layer
         y_in = output_layer.output
+        # retorna a derivada da função de ativação para cada ponto da entrada na camada
         output_activation.make_derivatives(y_in)
         derivatives_vector = output_activation.derivatives
+
+
         #delta_k vector - reserva o termo de informação do erro de cada neurônio de saída
         delta_k = []
         for i in range(len(error_vector)):
             delta_k.append(error_vector[i] * derivatives_vector[i])
 
-        #termo de correção do erro (delta_Wjk)
-        learning_rate = 0.8
-        ## delta_Wjk = learning_rate * delta_k * f(z_in)
+        
+        ### Taxa de aprendizado
+            
+        # Em nossos treinamentos estamos usando taxa de aprendizagem variável
+        if current_epoch < 300:
+            learning_rate = 0.1
+        else: learning_rate = 0.2
+        
 
+
+        # Cálculo do termo de correção do erro (delta_Wjk) para cada peso da camada de saída
+        # delta_Wjk = learning_rate * delta_k * f(z_in)
         delta_Wjk = []
         for j in range(len(hidden_activation.output)):
             Wjk = []
@@ -121,12 +143,13 @@ while True:
                 Wjk.append(learning_rate * delta_k[k] * hidden_activation.output[j])
             delta_Wjk.append(Wjk)
 
-        #termo de correção do bias 
+        # termo de correção do bias 
         delta_bias = []
         for i in range(len(delta_k)):
             delta_bias.append(learning_rate * delta_k[i])
 
-        #calculando o delta_inj 
+        # calculando o delta_inj 
+        # as informações de erro vindas da camada acima (posterior).
         delta_inj = []
         for i in range(hidden_layer.n_neurons):
             somatorio = 0
@@ -135,16 +158,18 @@ while True:
 
             delta_inj.append(somatorio)
 
-        #multiplicando pela derivada da função de ativação f'(z_in)
+        #  derivada da função de ativação da camada oculta f'(z_in)
         z_in = hidden_layer.output
         hidden_activation.make_derivatives(z_in)
         derivatives_vector = hidden_activation.derivatives
 
+        # calculando o delta j, que é o componente da correção do peso para a camada oculta 
+        # que traz a informação da camada de saída
         delta_j = []
         for i in range(len(delta_inj)):
             delta_j.append(delta_inj[i] * derivatives_vector[i])
 
-        #calcular o termo de correção do peso delta_Vij
+        # calcular o termo de correção dos pesos da camada oculta delta_Vij
         delta_Vij = []
         for i in range(len(X[index])):
             Vij = []
@@ -152,40 +177,40 @@ while True:
                 Vij.append(learning_rate * delta_j[j]* X[index][i])
             delta_Vij.append(Vij)
 
-        #calcular o termo de correção do bias na hidden_layer
+        # calcular o termo de correção do bias na camada oculta
         delta_V0j = []
         for i in range(len(delta_j)):
             delta_V0j.append(learning_rate * delta_j[i])
 
         
 
-        #atualização dos pesos da camada de output e da oculta
+        # atualização dos pesos da camada de output e da oculta
+        # Utilização do termo de momentum para acelerar a convergência
         for j in range(len(output_layer.weights)):
             for z in range(len(output_layer.weights[0])):
                 output_layer.weights[j][z] += delta_Wjk[j][z] + (alpha * momentum_output[j][z])
-                #momentum_output[j][z] = delta_Wjk[j][z] + (alpha * momentum_output[j][z])
+                momentum_output[j][z] = delta_Wjk[j][z] + (alpha * momentum_output[j][z])
 
         for j in range(len(hidden_layer.weights)):
             for z in range(len(hidden_layer.weights[0])):
                 hidden_layer.weights[j][z] += delta_Vij[j][z] + (alpha * momentum_hidden[j][z])
-                #momentum_hidden[j][z] = delta_Vij[j][z] + (alpha * momentum_hidden[j][z])
+                momentum_hidden[j][z] = delta_Vij[j][z] + (alpha * momentum_hidden[j][z])
 
         #atualização dos bias 
         for i in range(len(output_layer.biases)):
             output_layer.biases[i] += delta_bias[i] + (alpha * momentum_bias_output[i])
-            #momentum_bias_output[i] = delta_bias[i] + (alpha * momentum_bias_output[i])
+            momentum_bias_output[i] = delta_bias[i] + (alpha * momentum_bias_output[i])
 
         for i in range(len(hidden_layer.biases)):
             hidden_layer.biases[i] += delta_V0j[i] + (alpha * momentum_bias_hidden[i])
-            #momentum_bias_hidden[i] = delta_V0j[i] + (alpha * momentum_bias_hidden[i])
+            momentum_bias_hidden[i] = delta_V0j[i] + (alpha * momentum_bias_hidden[i])
     
     
-    #acabou a época
-    quadratic_error = error / len(X)
-  
-    # Compute training loss and update model parameters
+    # Ao fim de cada época, calculamos o erro quedrático 
+    quadratic_error = error / len(X) 
     
-    
+
+    ### Condições de parada
     # Checa se o erro já está no nível aceitável
     if quadratic_error < min_error_threshold:
         print("Training converged: Minimum error threshold reached.")
@@ -195,10 +220,12 @@ while True:
     if current_epoch >= max_epochs:
         print("Training terminated: Maximum number of epochs reached.")
         break
+    
 
+    #### Mecananismos de salvamento dos resultados e plotagem de gráfico
     error_historic.append(quadratic_error)
 
-    
+    # Salva os pesos da época em arquivo json que será utilizado para realizar os testes de acurácia
     json_filename = "output.json"
 
     # Create a dictionary to store the results
@@ -217,43 +244,22 @@ while True:
     with open(json_filename, 'w') as json_file:
         json.dump(results, json_file, indent=4)
 
-    
-            
-    test = testing(hidden_neurons=number_of_neurons)
+    # realiza os testes com os pesos obtidos na época, obtendo a acurácia 
+    ### Os testes se encontram no arquivo testing.py
+    test = testing(hidden_neurons=number_of_neurons) # retorna a acurácia do modelo
     accuracy_historic.append(test)
-    if test > 0.75:
 
-        json_filename = "output_final.json"
-
-        # Create a dictionary to store the results
-        results = {
-            "epoca": current_epoch,
-            "Pesos da camada escondida": hidden_layer.weights,
-            "Bias da camada escondida": hidden_layer.biases,
-            "Pesos da camada de output": output_layer.weights,
-            "Bias da camada de output": output_layer.biases,
-            "erros": error_historic,
-            "accuracies": accuracy_historic,
-            "Erro quadrático": quadratic_error
-        }
-
-        # Write the results to the JSON file
-        with open(json_filename, 'w') as json_file:
-            json.dump(results, json_file, indent=4)
-
-    
-
-
+    # Log de controle do que está ocorrendo em cada época
     print(f"Current epoch: {current_epoch} quadratic_error: {quadratic_error} accuracy: {test}")
 
     # Increment epoch counter
     current_epoch += 1
 
     
-
+#### Teste final da modelo obtido, plotando a matriz de confusão
 testing(isFinal=True, hidden_neurons=number_of_neurons)
 
-# Plot and save the combined learning curves
+#### Plotagem dos resultados
 fig, ax1 = plt.subplots()
 
 color = 'tab:red'
@@ -295,7 +301,7 @@ class PDF(FPDF):
         
         self.image(image_path, x = 20, y = 60, w = 180)
 
-# Generate PDF
+# Gera o arquivo PDF
 pdf = PDF()
 pdf.add_page()
 pdf.set_font('Arial', 'B', 12)
