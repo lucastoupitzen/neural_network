@@ -5,17 +5,17 @@ from reading_final_project import read_test_database
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-def testing(isFinal: bool = False, hidden_neurons = 0):
+def testing(isFinal: bool = False, hidden_neurons = 0, validation_input = None, validation_output = None, fold = 0):
 
     # Instancia as camadas do modelo
     hidden_layer = Layer(120, hidden_neurons)
     output_layer = Layer(hidden_neurons, 26)
 
 
-    X, y = read_test_database()
+    X, y = validation_input, validation_output
 
     # Arquivo json de onde as informações serão retiradas
-    json_filename = "output.json"
+    json_filename = f"output_fold_{fold}x.json"
 
     with open(json_filename, 'r') as json_file:
         results = json.load(json_file)
@@ -39,6 +39,9 @@ def testing(isFinal: bool = False, hidden_neurons = 0):
     ## Inicia a estrutura da matriz de confusão, uma matriz[26][26] com 0 em todos os campos
     confusion_matrix = [[0 for _ in range(26)] for _ in range(26)]
 
+    # inicialização da variável do erro quadrático calculado para cada época
+    error = 0
+
     for index_test in range(len(X)):
 
 
@@ -58,6 +61,13 @@ def testing(isFinal: bool = False, hidden_neurons = 0):
         #output_activation.output é a saída da rede neural
         result = output_activation.output
 
+        error_vector = []
+            
+        for i in range(len(y[index_test])):
+            error_vector.append(y[index_test][i] - result[i])
+            # Erros ao quadrado -> Compõe o cálculo do erro quadrático mais adiante (linha 210)
+            error += ((y[index_test][i] - result[i])**2)
+
         expected_output = y[index_test]
         
         # As saídas esperadas estão no formato one-hot-encoded
@@ -71,6 +81,10 @@ def testing(isFinal: bool = False, hidden_neurons = 0):
         if isFinal:
             # Soma 1 ao campo [esperado][obtido]
             confusion_matrix[expected_output.index(1)][result.index(max(result))] += 1
+
+    quadratic_error = error / len(X) 
+
+
             
     # plotagem da matriz de confusão
     if isFinal:
@@ -84,4 +98,4 @@ def testing(isFinal: bool = False, hidden_neurons = 0):
         plt.clf()
     
     # retorna a acurácia
-    return (sucesso)/(sucesso + erro)
+    return (sucesso)/(sucesso + erro) , quadratic_error
