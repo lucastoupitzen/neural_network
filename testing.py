@@ -5,17 +5,17 @@ from reading_final_project import read_test_database
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-def testing(isFinal: bool = False, hidden_neurons = 0, validation_input = None, validation_output = None, fold = 0):
+def testing(isFinal: bool = False, hidden_neurons = 0):
 
     # Instancia as camadas do modelo
     hidden_layer = Layer(120, hidden_neurons)
     output_layer = Layer(hidden_neurons, 26)
 
 
-    X, y = validation_input, validation_output
+    X, y = read_test_database()
 
     # Arquivo json de onde as informações serão retiradas
-    json_filename = f"output_fold_{fold}x.json"
+    json_filename = f"output_fold_5x.json"
 
     with open(json_filename, 'r') as json_file:
         results = json.load(json_file)
@@ -99,3 +99,5 @@ def testing(isFinal: bool = False, hidden_neurons = 0, validation_input = None, 
     
     # retorna a acurácia
     return (sucesso)/(sucesso + erro) , quadratic_error
+
+print(testing(isFinal=True, hidden_neurons=85))
