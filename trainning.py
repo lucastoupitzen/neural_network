@@ -35,22 +35,7 @@ number_of_neurons = 85
 hidden_layer = Layer(120, number_of_neurons)
 output_layer = Layer(number_of_neurons, 26)
 
-json_filename = f"output_final.json"
 
-with open(json_filename, 'r') as json_file:
-    results = json.load(json_file)
-
-# Extração dos pesos e dos biases obtidos em treinamento
-hidden_layer_weights = results["Pesos da camada escondida"]
-hidden_layer_biases = results["Bias da camada escondida"]
-output_layer_weights = results["Pesos da camada de output"]
-output_layer_biases = results["Bias da camada de output"]
-
-hidden_layer.set_weights(hidden_layer_weights)
-hidden_layer.set_biases(hidden_layer_biases)
-
-output_layer.set_weights(output_layer_weights)
-output_layer.set_biases(output_layer_biases)
 
 
 # Define o mínimo erro quadrático aceitável que determina a convergência do modelo
@@ -61,9 +46,9 @@ current_epoch = 0
 max_epochs = 700
 
 # guarda os erros e acuràcias obtidos em cada época
-error_historic = results["erros"]
-accuracy_historic =  results["accuracies"]
-error_test = results["erros_teste"]
+error_historic = []
+accuracy_historic =  []
+error_test = []
 
 #momentum
 # Utilizado como uma estratégia para acelerar a convergência do método e

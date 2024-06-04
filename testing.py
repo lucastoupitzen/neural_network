@@ -15,7 +15,7 @@ def testing(isFinal: bool = False, hidden_neurons = 0):
     X, y = read_test_database()
 
     # Arquivo json de onde as informações serão retiradas
-    json_filename = f"output_fold_5x.json"
+    json_filename = f"output_final.json"
 
     with open(json_filename, 'r') as json_file:
         results = json.load(json_file)
@@ -99,5 +99,3 @@ def testing(isFinal: bool = False, hidden_neurons = 0):
     
     # retorna a acurácia
     return (sucesso)/(sucesso + erro) , quadratic_error
-
-print(testing(isFinal=True, hidden_neurons=85))
