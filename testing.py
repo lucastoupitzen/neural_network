@@ -1,3 +1,14 @@
+'''
+Andre Palacio Braga Tivo 13835534
+João Pedro Gonçalves Vilela 13731070
+Lucas Muniz de Lima 13728941
+Lucas Toupitzen Ferracin Garcia 11804164
+'''
+
+
+
+
+
 import json
 from Layer import Layer
 from activation_functions.Sigmoid import SigmoidActivation
